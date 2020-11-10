@@ -3,8 +3,8 @@
 #define     PRSCLR   1024   
 //define three inputs as volatile
 volatile uint8_t buttonState = 0;
-volatile uint16_t sliderState = 0;
-volatile uint16_t previousSliderState = 0;
+volatile uint16_t sliderState = HIGH;
+volatile uint16_t previousSliderState = HIGH;
 volatile uint16_t photoState = 0;
 volatile uint16_t previousPhotoState = 0;
 
@@ -29,40 +29,43 @@ const uint8_t resetPin = 2;
 
 
 //define random number variable
-long randNum = 0;
+volatile long randNum = 0;
 
+
+
+int melody[] = {200, 500, 270, 700, 20, 340, 210, 210};
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
+
+
+int lostMelody[] = {800, 400, 600, 300, 500, 100, 200, 200};
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int lostnoteDurations[] = {8, 8, 8, 8, 8, 8, 8, 1};
+
+
+int wonMelody[] = {  100, 200, 500, 300, 500, 700};
+// note durations: 4 = quarter note, 8 = eighth note, etc.:
+int wonnoteDurations[] = {4, 4, 4, 2, 4, 1, 1};
 
 
 //define wait time variable in millisconds
-unsigned long long waitTime = 6000;
-unsigned long long previousTime = 0;
-unsigned long long currentTime = 0;
-unsigned long long decrementAmount = 50;
+volatile unsigned long long waitTime = 6000;
+volatile unsigned long long previousTime = 0;
+volatile unsigned long long currentTime = 0;
+volatile unsigned long long decrementAmount = 50;
 
 //next user instruction flag
-bool flag = true;
-bool win = false;
+volatile bool flag = true;
+volatile bool win = false;
 
 
 //keep track of score
 uint8_t score = 0;
 
-//create tones
-unsigned int correctTone[3] = { 220, 277, 300};
-unsigned int wrongTone[3] = {300, 277, 220};
-unsigned int winTone[12] = { 220, 277, 300, 220, 277, 300, 220, 277, 300, 220, 277, 300};
-unsigned int readyTone[7] = {200, 250, 300, 250, 200, 250, 300};
-                                  
-//playing one note
-void playfreq(unsigned int freq);
-
-void playWinSound();
-void playLoseSount();
-void playStartSound();
-void playRightSound();
-void buttonSequence();
-void sliderSequence();
-void photoSequence();
+                           
+volatile void buttonSequence();
+volatile void sliderSequence();
+volatile void photoSequence();
 
 void setup() {
   //THIS MUST BE FIRST
@@ -103,40 +106,45 @@ void setup() {
  
   randomSeed(analogRead(0));
 
-
-  //set up speaker output
-  //PB1 pin in OUTPUT mode
-  DDRB |= ( 1 << DDB1 );
-
-  TCCR1A = 0b0;
-  //non-inverting mode of PWM
-  TCCR1A |= ( 1 << COM1A1 ) | ( 1 << COM1B1 );
-  //Fast mode PWM with ICR1 as TOP:
-  TCCR1A |= ( 1 << WGM11 );
-  TCCR1B = 0b0;
-  TCCR1B |= ( 1 << WGM12 ) | ( 1 << WGM13 );
-  //prescaler = 1024
-  TCCR1B |= ( 1 << CS12 ) | ( 1 << CS10 );
-
+ 
   //play ready to play tone
-  for(int i = 0; i <7; i++){
-      playfreq(readyTone[i]);
-      delay(100);
-    }
+  for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+    // to calculate the note duration, take one second divided by the note type.
+
+    //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
+    int noteDuration = 1000 / noteDurations[thisNote];
+    tone(speakerPin, melody[thisNote], noteDuration);
+
+    // to distinguish the notes, set a minimum time between them.
+    // the note's duration + 30% seems to work well:
+
+    int pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+    // stop the tone playing:
+    noTone(speakerPin);
+
+  }
+  win = false;
+  flag = true;
+    
 }
 
 
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+  
   //select input prompt
   
   if(flag){
     randNum = random(3);
+    //randNum = 1;
+    delay(30);
     flag = false;
+    delay(30);
   }
-  delay(3);//slow program down
+  delay(30);//slow program down
   previousTime = millis();
   switch(randNum){
       case 0:
@@ -155,26 +163,36 @@ void loop() {
         digitalWrite(photoPromptPin, LOW);
         break;
   }
-  delay(3);//slow program down
+  delay(3000);//slow program down
   
   if(!win){
     //play lose 
-    for(int i = 0; i <3; i++){
-      playfreq(wrongTone[i]);
-      delay(100);
+    for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+      // to calculate the note duration, take one second divided by the note type.
+  
+      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
+      int lostnoteDuration = 1000 / lostnoteDurations[thisNote];
+      tone(speakerPin, lostMelody[thisNote], lostnoteDuration);
+  
+      // to distinguish the notes, set a minimum time between them.
+      // the note's duration + 30% seems to work well:
+  
+      int lostpauseBetweenNotes = lostnoteDuration * 1.30;
+      delay(lostpauseBetweenNotes);
+      // stop the tone playing:
+      noTone(speakerPin);
+
     }
     //blink score
     //reset game
+    delay(1000);
     digitalWrite(resetPin, LOW);
   
-  }else{
+  }else if(win){
    
     //play win
-    for(int i = 0; i <3; i++){
-      playfreq(wrongTone[i]);
-      delay(100);
-    }
-   
+ 
     //add to score
     score ++;
     
@@ -193,69 +211,72 @@ void loop() {
   delay(3);//slow program down
   
   //play win tone
-  if(score == 99){
-    for(int i = 0; i <12; i++){
-      playfreq(winTone[i]);
-      delay(80);
+  if(score == 10){
+    for (int thisNote = 0; thisNote < 8; thisNote++) {
+
+      // to calculate the note duration, take one second divided by the note type.
+  
+      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
+      int wonnoteDuration = 1000 / wonnoteDurations[thisNote];
+      tone(speakerPin, wonMelody[thisNote], wonnoteDuration);
+  
+      // to distinguish the notes, set a minimum time between them.
+      // the note's duration + 30% seems to work well:
+  
+      int wonpauseBetweenNotes = wonnoteDuration * 1.30;
+      delay(wonpauseBetweenNotes);
+      // stop the tone playing:
+      noTone(speakerPin);
+
     }
     //reset game
+    delay(1000);
     digitalWrite(resetPin, LOW);
   }
   
 }
 
-void playfreq( unsigned int freq )
-{
-    //claclulate TOP according to note frequency
-    ICR1 = F_CPU / PRSCLR / freq - 1;
-    //50% duty cycle
-    OCR1A = ICR1 / 2;
-}
 
-
-void buttonSequence(){
+volatile void buttonSequence(){
   
   while(!flag){
     
     currentTime = millis();//get current time
-    
+    buttonState = digitalRead(buttonPin);//get current state
     if(currentTime - previousTime >= waitTime){// check time for operation
-      win = false;//exits with time up option
-      flag = true;//true ends this loop and assigns new number for sequence
+     win = false;//exits with time up option
+     flag = true;//true ends this loop and assigns new number for sequence
    
     }else if(buttonState == HIGH){//check if button was press
       win = true;//exits with right option
       flag = true;//true ends this loop and assigns new number for sequence
-    
-    }else{
-      buttonState = digitalRead(buttonPin);//get current state
     }  
   }
 }
 
-void sliderSequence(){
-  previousSliderState = analogRead(sliderPin);
-  
+volatile void sliderSequence(){
+  delay(500);
+ 
   while(!flag){
     
     currentTime = millis();//get current time
-    
+    sliderState = digitalRead(sliderPin);//get current state
     if(currentTime - previousTime >= waitTime){// check time for operation
       win = false;//exits with time up option
       flag = true;//true ends this loop and assigns new number for sequence
    
-    }else if(previousSliderState != sliderPin){//check if button was press
+    }else if(sliderState != previousSliderState){//check if button was press
       win = true;//exits with right option
       flag = true;//true ends this loop and assigns new number for sequence
-   
-    }else{
-      sliderState = analogRead(sliderPin);//get current state
-    }  
+      delay(200);
+      previousSliderState = sliderState;
+    }
   }
 }
 
-void photoSequence(){
-  previousPhotoState = analogRead(photoPin);
+volatile void photoSequence(){
+  delay(500);
+  previousPhotoState = analogRead(photoPin) - 275 ;
  
   while(!flag){
   
@@ -265,12 +286,12 @@ void photoSequence(){
       win = false;//exits with time up option
       flag = true;//true ends this loop and assigns new number for sequence
    
-    }else if(previousPhotoState != photoState){//check if button was press
+    }else if(previousPhotoState > photoState){//check if button was press
       win = true;//exits with right option
       flag = true;//true ends this loop and assigns new number for sequence
    
-    }else{
-      photoState = analogRead(photoPin);//get current state
-    }  
+    }
+    photoState = analogRead(photoPin);//get current state
+      
   }
 }
