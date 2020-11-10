@@ -58,7 +58,7 @@ volatile unsigned long long decrementAmount = 50;
 //next user instruction flag
 volatile bool flag = true;
 volatile bool win = false;
-
+volatile bool play = false;
 
 //keep track of score
 uint8_t score = 0;
@@ -130,113 +130,112 @@ void setup() {
   }
   win = false;
   flag = true;
-    
+  play = false;
 }
 
 
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  if(digitalRead(buttonPin) == HIGH){
+    play == true;
+  }
   //select input prompt
-  
-  if(flag){
-    randNum = random(0,2);
-    
-    delay(30);
-    flag = false;
-    delay(30);
-  }
-  delay(30);//slow program down
-  previousTime = millis();
-  switch(randNum){
-      case 0:
-        digitalWrite(buttonPromptPin,HIGH);
-        buttonSequence();
-        digitalWrite(buttonPromptPin,LOW);
-        break;
-      case 1:
-        digitalWrite(sliderPromptPin,HIGH);
-        sliderSequence();
-        digitalWrite(sliderPromptPin,LOW);
-        break;
-      case 2:
-        digitalWrite(photoPromptPin, HIGH);
-        photoSequence();
-        digitalWrite(photoPromptPin, LOW);
-        break;
-  }
-  delay(30);//slow program down
-  
-  if(!win){
-    //play lose 
-    for (int thisNote = 0; thisNote < lostMelodyNoteLength; thisNote++) {
-
-      // to calculate the note duration, take one second divided by the note type.
-  
-      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
-      int lostnoteDuration = 1000 / lostnoteDurations[thisNote];
-      tone(speakerPin, lostMelody[thisNote], lostnoteDuration);
-  
-      // to distinguish the notes, set a minimum time between them.
-      // the note's duration + 30% seems to work well:
-  
-      int lostpauseBetweenNotes = lostnoteDuration * 1.30;
-      delay(lostpauseBetweenNotes);
-      // stop the tone playing:
-      noTone(speakerPin);
-
+  if(play){  
+    if(flag){
+      randNum = random(0,2);
+      flag = false;
+      delay(30);
     }
-    //blink score
+    delay(30);//slow program down
+    previousTime = millis();
+    switch(randNum){
+        case 0:
+          digitalWrite(buttonPromptPin,HIGH);
+          buttonSequence();
+          digitalWrite(buttonPromptPin,LOW);
+          break;
+        case 1:
+          digitalWrite(sliderPromptPin,HIGH);
+          sliderSequence();
+          digitalWrite(sliderPromptPin,LOW);
+          break;
+        case 2:
+          digitalWrite(photoPromptPin, HIGH);
+          photoSequence();
+          digitalWrite(photoPromptPin, LOW);
+          break;
+    }
+    delay(30);//slow program down
     
-    resetSequence();
-  }else if(win){
+    if(!win){
+      //play lose 
+      for (int thisNote = 0; thisNote < lostMelodyNoteLength; thisNote++) {
+  
+        // to calculate the note duration, take one second divided by the note type.
+        //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
+        int lostnoteDuration = 1000 / lostnoteDurations[thisNote];
+        tone(speakerPin, lostMelody[thisNote], lostnoteDuration);
+    
+        // to distinguish the notes, set a minimum time between them.
+        // the note's duration + 30% seems to work well:
+    
+        int lostpauseBetweenNotes = lostnoteDuration * 1.30;
+        delay(lostpauseBetweenNotes);
+        // stop the tone playing:
+        noTone(speakerPin);
+  
+      }
+      //blink score
+      
+      resetSequence();
+    }else if(win){
+     
+      //play win
    
-    //play win
- 
-    //add to score
-    score ++;
-    
-    digitalWrite(counterPin, HIGH);
-    delay(10);
-    digitalWrite(counterPin, LOW);
-    delay(10);
-    
-    //--interval
-    if(waitTime > decrementAmount){
-      waitTime -= decrementAmount;
+      //add to score
+      score ++;
+      
+      digitalWrite(counterPin, HIGH);
+      delay(10);
+      digitalWrite(counterPin, LOW);
+      delay(10);
+      
+      //--interval
+      if(waitTime > decrementAmount){
+        waitTime -= decrementAmount;
+      }
+      win = false;
     }
-    win = false;
-  }
+    
+    //delay(3);//slow program down
+    
+    //play win tone
+    if(score == 99){
+      for (int thisNote = 0; thisNote < wonMelodyNoteLength; thisNote++) {
   
-  //delay(3);//slow program down
+        // to calculate the note duration, take one second divided by the note type.
+    
+        //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
+        int wonnoteDuration = 1000 / wonnoteDurations[thisNote];
+        tone(speakerPin, wonMelody[thisNote], wonnoteDuration);
+    
+        // to distinguish the notes, set a minimum time between them.
+        // the note's duration + 30% seems to work well:
+    
+        int wonpauseBetweenNotes = wonnoteDuration * 1.30;
+        delay(wonpauseBetweenNotes);
+        // stop the tone playing:
+        noTone(speakerPin);
   
-  //play win tone
-  if(score == 99){
-    for (int thisNote = 0; thisNote < wonMelodyNoteLength; thisNote++) {
-
-      // to calculate the note duration, take one second divided by the note type.
+      }
+      //reset game
+      delay(1000);
+      digitalWrite(resetPin, LOW);
   
-      //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
-      int wonnoteDuration = 1000 / wonnoteDurations[thisNote];
-      tone(speakerPin, wonMelody[thisNote], wonnoteDuration);
-  
-      // to distinguish the notes, set a minimum time between them.
-      // the note's duration + 30% seems to work well:
-  
-      int wonpauseBetweenNotes = wonnoteDuration * 1.30;
-      delay(wonpauseBetweenNotes);
-      // stop the tone playing:
-      noTone(speakerPin);
-
+      resetSequence();
     }
-    //reset game
-    delay(1000);
-    digitalWrite(resetPin, LOW);
-
-    resetSequence();
   }
- 
 }
 
 
@@ -306,7 +305,7 @@ volatile void resetSequence(){
       delay(10);
       score ++;
     }
-
+    play = false;
     score = 0;
   //reset game
     delay(1000);
