@@ -1,6 +1,4 @@
 
-
-#define     PRSCLR   1024   
 //define three inputs as volatile
 volatile uint8_t buttonState = 0;
 volatile uint16_t sliderState = 0;
