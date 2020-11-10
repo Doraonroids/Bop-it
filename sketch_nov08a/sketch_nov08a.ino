@@ -143,7 +143,7 @@ void loop() {
   //select input prompt
   if(play){  
     if(flag){
-      randNum = random(0,2);
+      randNum = random(3);
       flag = false;
       delay(30);
     }
