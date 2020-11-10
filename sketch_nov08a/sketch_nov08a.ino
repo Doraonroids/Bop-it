@@ -3,8 +3,8 @@
 #define     PRSCLR   1024   
 //define three inputs as volatile
 volatile uint8_t buttonState = 0;
-volatile uint16_t sliderState = HIGH;
-volatile uint16_t previousSliderState = HIGH;
+volatile uint16_t sliderState = 0;
+volatile uint16_t previousSliderState = 0;
 volatile uint16_t photoState = 0;
 volatile uint16_t previousPhotoState = 0;
 
@@ -29,23 +29,24 @@ const uint8_t resetPin = 2;
 
 
 //define random number variable
-volatile long randNum = 0;
+long randNum = 0;
 
 
-
+uint8_t melodyNoteLength = 8;
 int melody[] = {200, 500, 270, 700, 20, 340, 210, 210};
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
 int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4};
 
-
+uint8_t lostMelodyNoteLength = 8;
 int lostMelody[] = {800, 400, 600, 300, 500, 100, 200, 200};
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
 int lostnoteDurations[] = {8, 8, 8, 8, 8, 8, 8, 1};
 
 
+uint8_t wonMelodyNoteLength = 6 ;
 int wonMelody[] = {  100, 200, 500, 300, 500, 700};
 // note durations: 4 = quarter note, 8 = eighth note, etc.:
-int wonnoteDurations[] = {4, 4, 4, 2, 4, 1, 1};
+int wonnoteDurations[] = {4, 4, 4, 2, 4, 1};
 
 
 //define wait time variable in millisconds
@@ -66,6 +67,7 @@ uint8_t score = 0;
 volatile void buttonSequence();
 volatile void sliderSequence();
 volatile void photoSequence();
+volatile void resetSequence();
 
 void setup() {
   //THIS MUST BE FIRST
@@ -104,11 +106,12 @@ void setup() {
   pinMode(photoPin, INPUT);
   delay(10);
  
-  randomSeed(analogRead(0));
-
  
+
+  randomSeed(0);
+  
   //play ready to play tone
-  for (int thisNote = 0; thisNote < 8; thisNote++) {
+  for (int thisNote = 0; thisNote < melodyNoteLength; thisNote++) {
 
     // to calculate the note duration, take one second divided by the note type.
 
@@ -138,8 +141,8 @@ void loop() {
   //select input prompt
   
   if(flag){
-    randNum = random(3);
-    //randNum = 1;
+    randNum = random(0,2);
+    
     delay(30);
     flag = false;
     delay(30);
@@ -163,11 +166,11 @@ void loop() {
         digitalWrite(photoPromptPin, LOW);
         break;
   }
-  delay(3000);//slow program down
+  delay(30);//slow program down
   
   if(!win){
     //play lose 
-    for (int thisNote = 0; thisNote < 8; thisNote++) {
+    for (int thisNote = 0; thisNote < lostMelodyNoteLength; thisNote++) {
 
       // to calculate the note duration, take one second divided by the note type.
   
@@ -185,10 +188,8 @@ void loop() {
 
     }
     //blink score
-    //reset game
-    delay(1000);
-    digitalWrite(resetPin, LOW);
-  
+    
+    resetSequence();
   }else if(win){
    
     //play win
@@ -208,11 +209,11 @@ void loop() {
     win = false;
   }
   
-  delay(3);//slow program down
+  //delay(3);//slow program down
   
   //play win tone
-  if(score == 10){
-    for (int thisNote = 0; thisNote < 8; thisNote++) {
+  if(score == 99){
+    for (int thisNote = 0; thisNote < wonMelodyNoteLength; thisNote++) {
 
       // to calculate the note duration, take one second divided by the note type.
   
@@ -232,8 +233,10 @@ void loop() {
     //reset game
     delay(1000);
     digitalWrite(resetPin, LOW);
+
+    resetSequence();
   }
-  
+ 
 }
 
 
@@ -255,8 +258,8 @@ volatile void buttonSequence(){
 }
 
 volatile void sliderSequence(){
-  delay(500);
  
+  previousSliderState = digitalRead(sliderPin);
   while(!flag){
     
     currentTime = millis();//get current time
@@ -268,20 +271,19 @@ volatile void sliderSequence(){
     }else if(sliderState != previousSliderState){//check if button was press
       win = true;//exits with right option
       flag = true;//true ends this loop and assigns new number for sequence
-      delay(200);
-      previousSliderState = sliderState;
     }
+    
   }
 }
 
 volatile void photoSequence(){
-  delay(500);
+  
   previousPhotoState = analogRead(photoPin) - 275 ;
  
   while(!flag){
   
     currentTime = millis();//get current time
-   
+    photoState = analogRead(photoPin);//get current state
     if(currentTime - previousTime >= waitTime){// check time for operation
       win = false;//exits with time up option
       flag = true;//true ends this loop and assigns new number for sequence
@@ -290,8 +292,24 @@ volatile void photoSequence(){
       win = true;//exits with right option
       flag = true;//true ends this loop and assigns new number for sequence
    
-    }
-    photoState = analogRead(photoPin);//get current state
-      
+    }  
   }
+}
+
+volatile void resetSequence(){
+    delay(1000);
+
+    while(score < 100){
+      digitalWrite(counterPin, HIGH);
+      delay(10);
+      digitalWrite(counterPin, LOW);
+      delay(10);
+      score ++;
+    }
+
+    score = 0;
+  //reset game
+    delay(1000);
+    digitalWrite(resetPin, LOW);
+
 }
