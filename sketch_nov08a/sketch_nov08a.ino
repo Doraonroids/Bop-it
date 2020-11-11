@@ -267,6 +267,8 @@ void loop() {
     
     if(!win){
       //play lose 
+
+     
       for (int thisNote = 0; thisNote < lostMelodyNoteLength; thisNote++) {
   
         // to calculate the note duration, take one second divided by the note type.
