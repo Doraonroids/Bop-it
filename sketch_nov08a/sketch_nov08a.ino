@@ -365,7 +365,7 @@ volatile void sliderSequence(){
 }
 
 volatile void photoSequence(){
-  delay(30);
+  //delay(30);
   while(!flag){
   
     currentTime = millis();//get current time
