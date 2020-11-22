@@ -195,8 +195,8 @@ void setup() {
   //display usually start at 80 when first plugged in
   //change sync variable to true to run sync
   //change difference variable to sync properly
-  bool SYNC = false;
-  int difference = 20;
+  bool SYNC = true;
+  int difference = 12;
   int i = 0;
   while(i < 20 && SYNC){
     digitalWrite(counterPin, HIGH);
