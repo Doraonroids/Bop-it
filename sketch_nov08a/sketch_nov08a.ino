@@ -251,33 +251,7 @@ void loop() {
     delay(30);
     play = true;
   }
-  //select input prompt
-  if(play){  
-    if(flag){
-      randNum = random(3);
-      flag = false;
-      delay(30);
-    }
-    delay(30);//slow program down
-    previousTime = millis();
-    switch(randNum){
-        case 0:
-          digitalWrite(buttonPromptPin,HIGH);
-          buttonSequence();
-          digitalWrite(buttonPromptPin,LOW);
-          break;
-        case 1:
-          digitalWrite(sliderPromptPin,HIGH);
-          sliderSequence();
-          digitalWrite(sliderPromptPin,LOW);
-          break;
-        case 2:
-          digitalWrite(photoPromptPin, HIGH);
-          photoSequence();
-          digitalWrite(photoPromptPin, LOW);
-          break;
-    }
-    delay(30);//slow program down
+  
     
     if(!win && play){
       //play lose 
@@ -303,6 +277,7 @@ void loop() {
       //blink score
       
       resetSequence();
+      
     }else if(win && play){
      
       //add to score
@@ -330,6 +305,38 @@ void loop() {
       //reset game
       resetSequence();
     }
+
+      //select input prompt
+    if(play){  
+      if(flag){
+        randNum = random(3);
+        flag = false;
+        delay(30);
+      }
+      delay(30);//slow program down
+      previousTime = millis();
+      switch(randNum){
+          case 0:
+            digitalWrite(buttonPromptPin,HIGH);
+            buttonSequence();
+            digitalWrite(buttonPromptPin,LOW);
+            break;
+          case 1:
+            digitalWrite(sliderPromptPin,HIGH);
+            sliderSequence();
+            digitalWrite(sliderPromptPin,LOW);
+            break;
+          case 2:
+            digitalWrite(photoPromptPin, HIGH);
+            photoSequence();
+            digitalWrite(photoPromptPin, LOW);
+            break;
+      }
+      delay(30);//slow program down
+
+
+
+    
   }
 }
 
