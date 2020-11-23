@@ -133,7 +133,7 @@ int wonnoteDurations[] = {4, 4, 4, 2, 4, 1};
 
 
 //define wait time variable in millisconds
-volatile unsigned long long waitTime = 8000;
+volatile unsigned long long waitTime = 9000;
 volatile unsigned long long previousTime = 0;
 volatile unsigned long long currentTime = 0;
 volatile unsigned long long decrementAmount = 50;
@@ -235,6 +235,20 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   if(digitalRead(buttonPin) == HIGH){
+    noTone(speakerPin);
+    delay(30);
+    tone(speakerPin,NOTE_C4);
+    delay(100);
+    noTone(speakerPin);
+    delay(20);
+    tone(speakerPin,NOTE_C4);
+    delay(100);
+    noTone(speakerPin);
+    delay(20);
+    tone(speakerPin,NOTE_C4);
+    delay(300);
+    noTone(speakerPin);
+    delay(30);
     play = true;
   }
   //select input prompt
@@ -321,10 +335,12 @@ void loop() {
 
 
 volatile void buttonSequence(){
-  delay(30);
-  tone(speakerPin,NOTE_C4);
-  delay(10);
+  delay(50);
   noTone(speakerPin);
+  tone(speakerPin,NOTE_C4);
+  delay(100);
+  noTone(speakerPin);
+  delay(20);
 
   //GET INPUTS FOR COMPARISON
   previousSliderState = digitalRead(sliderPin);
@@ -354,10 +370,12 @@ volatile void buttonSequence(){
 
 volatile void sliderSequence(){
   //PLAY TONE TO ASK FOR INPUT
-  delay(30);
-  tone(speakerPin,NOTE_C3);
-  delay(10);
+  delay(50);
   noTone(speakerPin);
+  tone(speakerPin,NOTE_C3);
+  delay(100);
+  noTone(speakerPin);
+  delay(20);
 
   //GET INPUTS FOR COMPARISON
   previousSliderState = digitalRead(sliderPin);
@@ -374,7 +392,7 @@ volatile void sliderSequence(){
       win = false;//exits with time up option
       flag = true;//true ends this loop and assigns new number for sequence
     }else if(sliderState != previousSliderState){//check if slider moved
-      tone(speakerPin,NOTE_D4);
+      tone(speakerPin,NOTE_E4);
       delay(100);
       noTone(speakerPin);
       win = true;//exits with right option
@@ -386,10 +404,12 @@ volatile void sliderSequence(){
 
 volatile void photoSequence(){
   //PLAY TONE TO ASK FOR INPUT
-  delay(30);
-  tone(speakerPin,NOTE_C5);
-  delay(10);
+  delay(50);
   noTone(speakerPin);
+  tone(speakerPin,NOTE_C5);
+  delay(100);
+  noTone(speakerPin);
+  delay(20);
 
   //GET INPUTS FOR COMPARISON
   previousSliderState = digitalRead(sliderPin);
@@ -406,7 +426,7 @@ volatile void photoSequence(){
       flag = true;//true ends this loop and assigns new number for sequence
    
     }else if(20 == photoState){//check if phot cell covered
-      tone(speakerPin,NOTE_C4);
+      tone(speakerPin,NOTE_E4);
       delay(100);
       noTone(speakerPin);
       win = true;//exits with right option
@@ -428,7 +448,7 @@ volatile void resetSequence(){
     }
     play = false;
     score = 0;
-    waitTime = 8000;
+    waitTime = 9000;
     //reset game
     delay(1000);
     digitalWrite(resetPin, LOW);
