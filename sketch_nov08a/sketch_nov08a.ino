@@ -234,7 +234,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if(digitalRead(buttonPin) == HIGH && play == false;){
+  if(digitalRead(buttonPin) == HIGH && play == false){
     noTone(speakerPin);
     delay(30);
     tone(speakerPin,NOTE_C4);
