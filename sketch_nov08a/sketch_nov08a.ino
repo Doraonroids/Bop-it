@@ -198,7 +198,7 @@ void setup() {
   bool SYNC = true;
   int difference = 12;
   int i = 0;
-  while(i < 20 && SYNC){
+  while(i < difference && SYNC){
     digitalWrite(counterPin, HIGH);
     delay(10);
     digitalWrite(counterPin, LOW);
