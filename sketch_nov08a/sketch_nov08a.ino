@@ -192,7 +192,7 @@ void setup() {
   pinMode(photoPin, INPUT);
   delay(10);
  
-  //display usually start at 80 when first plugged in
+  //display usually start wrong when first plugged in
   //change sync variable to true to run sync
   //change difference variable to sync properly
   bool SYNC = true;
@@ -279,7 +279,7 @@ void loop() {
     }
     delay(30);//slow program down
     
-    if(!win){
+    if(!win && play){
       //play lose 
 
      
@@ -303,7 +303,7 @@ void loop() {
       //blink score
       
       resetSequence();
-    }else if(win){
+    }else if(win && play){
      
       //add to score
       score ++;
