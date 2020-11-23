@@ -133,7 +133,7 @@ int wonnoteDurations[] = {4, 4, 4, 2, 4, 1};
 
 
 //define wait time variable in millisconds
-volatile unsigned long long waitTime = 6000;
+volatile unsigned long long waitTime = 7000;
 volatile unsigned long long previousTime = 0;
 volatile unsigned long long currentTime = 0;
 volatile unsigned long long decrementAmount = 50;
@@ -323,6 +323,11 @@ void loop() {
 
 
 volatile void buttonSequence(){
+  tone(speakerPin,NOTE_C4);
+  delay(10);
+  noTone(speakerPin);
+
+
   
   while(!flag){
     
@@ -343,7 +348,9 @@ volatile void buttonSequence(){
 }
 
 volatile void sliderSequence(){
- 
+  tone(speakerPin,NOTE_C3);
+  delay(10);
+  noTone(speakerPin);
   previousSliderState = digitalRead(sliderPin);
   while(!flag){
     
@@ -365,7 +372,10 @@ volatile void sliderSequence(){
 }
 
 volatile void photoSequence(){
-  //delay(30);
+  
+  tone(speakerPin,NOTE_C5);
+  delay(10);
+  noTone(speakerPin);
   while(!flag){
   
     currentTime = millis();//get current time
@@ -397,7 +407,7 @@ volatile void resetSequence(){
     }
     play = false;
     score = 0;
-    waitTime = 6000;
+    waitTime = 7000;
     //reset game
     delay(1000);
     digitalWrite(resetPin, LOW);
