@@ -196,7 +196,7 @@ void setup() {
   //change sync variable to true to run sync
   //change difference variable to sync properly
   bool SYNC = true;
-  int difference = 12;
+  int difference = 52;
   int i = 0;
   while(i < difference && SYNC){
     digitalWrite(counterPin, HIGH);
@@ -397,6 +397,7 @@ volatile void resetSequence(){
     }
     play = false;
     score = 0;
+    waitTime = 6000;
     //reset game
     delay(1000);
     digitalWrite(resetPin, LOW);
