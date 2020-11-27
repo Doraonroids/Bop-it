@@ -133,16 +133,16 @@ int wonnoteDurations[] = {4, 4, 4, 2, 4, 1};
 
 
 //define wait time variable in millisconds
-volatile unsigned long long waitTime = 90000;
+volatile unsigned long long waitTime = 9000;
 volatile unsigned long long previousTime = 0;
 volatile unsigned long long currentTime = 0;
 volatile unsigned long long decrementAmount = 50;
 
 //next user instruction flag
-volatile bool flag = true;
-volatile bool win = false;
-volatile bool play = false;
-volatile bool test = false;
+
+volatile bool correctAnswer = false;
+volatile bool statePlaying = false;
+
 
 //keep track of score
 uint8_t score = 0;
@@ -152,21 +152,22 @@ volatile void buttonSequence();
 volatile void sliderSequence();
 volatile void photoSequence();
 volatile void resetSequence();
+volatile void rightAnswerSequence();
 volatile void playDarude();
+volatile void playStartTone();
+volatile void playReadyTone();
+volatile void playLoseTone();
 
 void setup() {
   //THIS MUST BE FIRST
-  digitalWrite(resetPin, HIGH);
-  delay(100);
+  //digitalWrite(resetPin, HIGH);
+  //delay(100);
 
-
- 
   // put your setup code here, to run once:
 
   previousTime = millis();
   
   //set pins to output mode
-  pinMode(resetPin, OUTPUT);
   delay(10);
   pinMode(counterPin, OUTPUT);
   delay(10);
@@ -208,7 +209,206 @@ void setup() {
   }
   randomSeed(0);
 
-  //play ready to play tone
+ //playStartTone();
+
+}
+
+
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  if(!statePlaying){
+      if(digitalRead(buttonPin) == HIGH){
+//        playReadyTone();
+        statePlaying = true;
+      }
+  
+  }else if(statePlaying){
+      randNum = 1;// random(2);
+      delay(30);//slow program down
+      previousTime = millis();
+      switch(randNum){
+          case 0:         
+            buttonSequence();          
+            break;            
+          case 1:            
+            sliderSequence();  
+            break;            
+          case 2:
+            photoSequence();          
+           break;
+      }
+      delay(30);//slow program down
+
+      if(correctAnswer){
+        rightAnswerSequence();
+      }
+
+      if(!correctAnswer){
+//        playLoseTone();
+        resetSequence();
+      }
+  
+      //play win tone
+      if(score == 99){
+//        playDarude();
+//        playDarude();
+//        playDarude();
+        //reset game
+        resetSequence();
+      }
+
+  }
+    
+  
+}
+
+
+volatile void buttonSequence(){
+  digitalWrite(buttonPromptPin,HIGH);
+  delay(50);
+  //noTone(speakerPin);
+ // tone(speakerPin,NOTE_C4);
+ // delay(100);
+  //noTone(speakerPin);
+  //delay(20);
+
+  //GET INPUTS FOR COMPARISON
+  previousSliderState = digitalRead(sliderPin);
+
+  
+  while(true){
+    currentTime = millis();//get current time
+    buttonState = digitalRead(buttonPin);//get current state
+    sliderState = digitalRead(sliderPin);//get current state
+    photoState = analogRead(photoPin);//get current state
+    
+    if((currentTime - previousTime >= waitTime)) {//|| (sliderState != previousSliderState)|| (90 == photoState)){// check time for operation or wrong input
+      correctAnswer = false;
+      break;
+    }else if(buttonState == HIGH){//check if button was press
+      //tone(speakerPin,NOTE_E4);
+      //delay(100);
+      //noTone(speakerPin);
+      correctAnswer = true;
+      break;
+    }  
+  }
+   digitalWrite(buttonPromptPin,LOW);
+}
+
+volatile void sliderSequence(){
+
+  digitalWrite(sliderPromptPin,HIGH);
+  
+  //PLAY TONE TO ASK FOR INPUT
+//  delay(50);
+//  noTone(speakerPin);
+//  tone(speakerPin,NOTE_C3);
+//  delay(100);
+//  noTone(speakerPin);
+//  delay(20);
+
+  //GET INPUTS FOR COMPARISON
+  previousSliderState = analogRead(sliderPin);
+
+
+  while(true){
+    delay(30);
+    currentTime = millis();//get current time
+    
+    sliderState = analogRead(sliderPin);//get current state
+    buttonState = digitalRead(buttonPin);//get current state
+    photoState = analogRead(photoPin);//get current state
+    
+    if((currentTime - previousTime >= waitTime)){// || (buttonState == HIGH) || (90 == photoState)){// check time for operation or wrong input
+      correctAnswer = false;
+      break;
+    }else if(sliderState  > 500 ){//!= previousSliderState){//check if slider moved
+//      tone(speakerPin,NOTE_E4);
+//      delay(100);
+//      noTone(speakerPin);
+      correctAnswer = true;
+      break;
+    }
+    
+  }
+  digitalWrite(sliderPromptPin,LOW);
+}
+
+volatile void photoSequence(){
+  digitalWrite(photoPromptPin, HIGH);
+  
+  //PLAY TONE TO ASK FOR INPUT
+//  delay(50);
+//  noTone(speakerPin);
+//  tone(speakerPin,NOTE_C5);
+//  delay(100);
+//  noTone(speakerPin);
+//  delay(20);
+
+  //GET INPUTS FOR COMPARISON
+  previousSliderState = digitalRead(sliderPin);
+  
+  while(true){
+    currentTime = millis();//get current time
+    
+    buttonState = digitalRead(buttonPin);//get current state
+    sliderState = digitalRead(sliderPin);//get current state
+    photoState = analogRead(photoPin);//get current state
+    
+    if((currentTime - previousTime >= waitTime)){// || (sliderState != previousSliderState) || (buttonState == HIGH)){// check time for operation or wrong input
+      correctAnswer = false;
+      break;
+    }else if(90 == photoState){//check if phot cell covered
+//      tone(speakerPin,NOTE_E4);
+//      delay(100);
+//      noTone(speakerPin);
+      correctAnswer = true;
+      break;
+    }  
+  }
+  digitalWrite(photoPromptPin, LOW);
+}
+
+volatile void resetSequence(){
+    delay(100);
+
+    while(score < 100){
+      digitalWrite(counterPin, HIGH);
+      delay(10);
+      digitalWrite(counterPin, LOW);
+      delay(10);
+      score ++;
+    }
+    
+    statePlaying = false;
+    score = 0;
+    waitTime = 9000;
+    //reset game
+    delay(100);
+    digitalWrite(resetPin, LOW);
+
+}
+
+volatile void rightAnswerSequence(){ 
+    //add to score
+      score ++;
+      
+      digitalWrite(counterPin, HIGH);
+      delay(10);
+      digitalWrite(counterPin, LOW);
+      delay(10);
+      
+      //--interval
+      if(waitTime > decrementAmount){
+        waitTime -= decrementAmount;
+      }
+  }
+
+volatile void playStartTone(){
+  
   for (int thisNote = 0; thisNote < melodyNoteLength; thisNote++) {
 
     // to calculate the note duration, take one second divided by the note type.
@@ -226,18 +426,10 @@ void setup() {
     noTone(speakerPin);
 
   }
-  win = false;
-  flag = true;
-  play = false;
-  test = false;
 }
 
-
-
-void loop() {
-  // put your main code here, to run repeatedly:
-  if(digitalRead(buttonPin) == HIGH && play == false){
-    noTone(speakerPin);
+volatile void playReadyTone(){
+   noTone(speakerPin);
     delay(30);
     tone(speakerPin,NOTE_C4);
     delay(100);
@@ -251,53 +443,11 @@ void loop() {
     delay(300);
     noTone(speakerPin);
     delay(30);
-    play = true;
   }
 
+volatile void playLoseTone(){
 
-
-
-   //select input prompt
-    if(play){  
-      if(flag){
-        randNum = random(2);
-        flag = false;
-        delay(30);
-      }
-      delay(30);//slow program down
-      previousTime = millis();
-      switch(randNum){
-          case 0:
-            digitalWrite(buttonPromptPin,HIGH);
-            buttonSequence();
-            digitalWrite(buttonPromptPin,LOW);
-            
-            break;
-            /*
-          case 1:
-            digitalWrite(sliderPromptPin,HIGH);
-            sliderSequence();
-            digitalWrite(sliderPromptPin,LOW);
-            break;
-            */
-          case 1:
-            digitalWrite(photoPromptPin, HIGH);
-            photoSequence();
-            digitalWrite(photoPromptPin, LOW);
-            break;
-      }
-      delay(30);//slow program down
-
-
-
-
-  
-    /*
-    if(test){//win == false && play == true){
-      //play lose 
-
-     
-      for (int thisNote = 0; thisNote < lostMelodyNoteLength; thisNote++) {
+  for (int thisNote = 0; thisNote < lostMelodyNoteLength; thisNote++) {
   
         // to calculate the note duration, take one second divided by the note type.
         //e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc
@@ -313,170 +463,8 @@ void loop() {
         noTone(speakerPin);
   
       }
-      
-      //blink score
-      
-      resetSequence();
-      
-    }else if(!test){//win == true && play == true){
-     
-      //add to score
-      score ++;
-      
-      digitalWrite(counterPin, HIGH);
-      delay(10);
-      digitalWrite(counterPin, LOW);
-      delay(10);
-      
-      //--interval
-      if(waitTime > decrementAmount){
-        waitTime -= decrementAmount;
-      }
-      win = false;
-    }*/
-    
-    
-    //play win tone
-    if(score == 99){
-      playDarude();
-      playDarude();
-      playDarude();
-      //reset game
-      resetSequence();
-    }
-
-   
-    
-  }
 }
 
-
-volatile void buttonSequence(){
-  delay(50);
-  noTone(speakerPin);
-  tone(speakerPin,NOTE_C4);
-  delay(100);
-  noTone(speakerPin);
-  delay(20);
-
-  //GET INPUTS FOR COMPARISON
-  previousSliderState = digitalRead(sliderPin);
-
-  
-  while(!flag){
-    currentTime = millis();//get current time
-    
-    buttonState = digitalRead(buttonPin);//get current state
-    //sliderState = digitalRead(sliderPin);//get current state
-   // photoState = analogRead(photoPin);//get current state
-    
-    if((currentTime - previousTime >= waitTime)){// || (sliderState != previousSliderState)|| (20 == photoState)){// check time for operation or wrong input
-      
-     win = false;//exits with time up option
-     flag = true;//true ends this loop and assigns new number for sequence
-     test = true;
-    }else if(buttonState == HIGH){//check if button was press
-      tone(speakerPin,NOTE_E4);
-      delay(100);
-      noTone(speakerPin);
-      win = true;//exits with right option
-      flag = true;//true ends this loop and assigns new number for sequence
-      test = false;
-    }  
-  }
-}
-
-volatile void sliderSequence(){
-  //PLAY TONE TO ASK FOR INPUT
-  delay(50);
-  noTone(speakerPin);
-  tone(speakerPin,NOTE_C3);
-  delay(100);
-  noTone(speakerPin);
-  delay(20);
-
-  //GET INPUTS FOR COMPARISON
- // previousSliderState = digitalRead(sliderPin);
-
-
-  while(!flag){
-    currentTime = millis();//get current time
-    
-    sliderState = digitalRead(sliderPin);//get current state
-   // buttonState = digitalRead(buttonPin);//get current state
-    //photoState = analogRead(photoPin);//get current state
-    
-    if((currentTime - previousTime >= waitTime)){// || (buttonState == HIGH) || (20 == photoState)){// check time for operation or wrong input
-      win = false;//exits with time up option
-      flag = true;//true ends this loop and assigns new number for sequence
-       test = true;
-    }else if(sliderState != previousSliderState){//check if slider moved
-      tone(speakerPin,NOTE_E4);
-      delay(100);
-      noTone(speakerPin);
-      win = true;//exits with right option
-      flag = true;//true ends this loop and assigns new number for sequence
-      test = false;
-    }
-    
-  }
-}
-
-volatile void photoSequence(){
-  //PLAY TONE TO ASK FOR INPUT
-  delay(50);
-  noTone(speakerPin);
-  tone(speakerPin,NOTE_C5);
-  delay(100);
-  noTone(speakerPin);
-  delay(20);
-
-  //GET INPUTS FOR COMPARISON
-  //previousSliderState = digitalRead(sliderPin);
-  
-  while(!flag){
-    currentTime = millis();//get current time
-    
-   // buttonState = digitalRead(buttonPin);//get current state
-   // sliderState = digitalRead(sliderPin);//get current state
-    photoState = analogRead(photoPin);//get current state
-    
-    if(currentTime - previousTime >= waitTime){// || (sliderState != previousSliderState) || (buttonState == HIGH)){// check time for operation or wrong input
-      win = false;//exits with time up option
-      flag = true;//true ends this loop and assigns new number for sequence
-    test = true;
-    }else if(100 == photoState){//check if phot cell covered
-      tone(speakerPin,NOTE_E4);
-      delay(100);
-      noTone(speakerPin);
-      win = true;//exits with right option
-      flag = true;//true ends this loop and assigns new number for sequence
-      test = false;
-    }  
-  }
-}
-
-volatile void resetSequence(){
-    delay(1000);
-
-    while(score < 100){
-      digitalWrite(counterPin, HIGH);
-      delay(10);
-      digitalWrite(counterPin, LOW);
-      delay(10);
-      score ++;
-    }
-    flag = true;
-    play = false;
-    win = false;
-    test = false;
-    score = 0;
-    waitTime = 90000;
-    //reset game
-    delay(1000);
-    digitalWrite(resetPin, LOW);
-
-}
 
 volatile void playDarude(){
  int shortTone = 80; //Length of Short Note
