@@ -2,6 +2,11 @@
 
 ECE1895 bop-it project
 
+
+This is the c++ arduino sketch for team lambda's bop-it project.
+
+The chip used is a atmegea328
+
 1.Functional/ Software Requirements
 The game will interact with the user as follows
 User has the ability to turn the unit on or off.
